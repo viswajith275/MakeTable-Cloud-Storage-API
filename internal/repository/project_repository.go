@@ -121,6 +121,9 @@ func GetProjectByID(pool *pgxpool.Pool, UserID uuid.UUID, ProjectID uuid.UUID) (
 	)
 
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("Project not found")
+		}
 		return nil, err
 	}
 

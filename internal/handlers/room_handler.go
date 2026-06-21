@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"timetable_api/internal/dto"
 	"timetable_api/internal/repository"
@@ -30,6 +29,21 @@ func CreateRoomHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
+		project, err := repository.GetProjectByID(pool, UserID, ProjectID)
+
+		if err != nil {
+			if err.Error() == "Project not found" {
+				ctx.JSON(http.StatusNotFound, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
 		var req dto.RoomCreationRequest
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -46,9 +60,7 @@ func CreateRoomHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("Constraints payload: %+v\n", req.Constraints)
-
-		room, err := repository.CreateRoom(pool, UserID, ProjectID, &req)
+		room, err := repository.CreateRoom(pool, UserID, project.ID, &req)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -89,7 +101,22 @@ func GetRoomsHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		rooms, err := repository.GetAllRooms(pool, UserID, ProjectID)
+		project, err := repository.GetProjectByID(pool, UserID, ProjectID)
+
+		if err != nil {
+			if err.Error() == "Project not found" {
+				ctx.JSON(http.StatusNotFound, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		rooms, err := repository.GetAllRooms(pool, UserID, project.ID)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -136,6 +163,21 @@ func UpdateRoomHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
+		room, err := repository.GetRoomByID(pool, UserID, RoomID)
+
+		if err != nil {
+			if err.Error() == "No room found" {
+				ctx.JSON(http.StatusNotFound, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
 		var req dto.RoomUpdationRequest
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -145,7 +187,7 @@ func UpdateRoomHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		room, err := repository.UpdateRoom(pool, UserID, RoomID, &req)
+		room, err = repository.UpdateRoom(pool, UserID, RoomID, &req)
 
 		if err != nil {
 			if err.Error() == "Nothing to update!" {

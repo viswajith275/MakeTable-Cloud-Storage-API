@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS user_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) NOT NULL UNIQUE, -- HSA-256 hash of the token sent to the user (WE USE IT TO FIND THE ROW)
+    token_hash VARCHAR(255) NOT NULL UNIQUE, -- SHA-256 hash of the token sent to the user (WE USE IT TO FIND THE ROW)
     is_revoked BOOLEAN DEFAULT FALSE NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -208,3 +208,19 @@ AFTER INSERT OR UPDATE OR DELETE ON teacher_assignments
 FOR EACH ROW EXECUTE FUNCTION bump_assignments_version();
 
 
+CREATE INDEX IF NOT EXISTS idx_user_tokens_user_id ON user_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_rooms_project_id ON rooms(project_id);
+CREATE INDEX IF NOT EXISTS idx_classes_project_id ON classes(project_id);
+CREATE INDEX IF NOT EXISTS idx_teachers_project_id ON teachers(project_id);
+CREATE INDEX IF NOT EXISTS idx_subjects_project_id ON subjects(project_id);
+
+CREATE INDEX IF NOT EXISTS idx_assignments_project_id ON teacher_assignments(project_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_class_id ON teacher_assignments(class_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_teacher_id ON teacher_assignments(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_subject_id ON teacher_assignments(subject_id);
+
+CREATE INDEX IF NOT EXISTS idx_versions_project_id ON versions(project_id);
+CREATE INDEX IF NOT EXISTS idx_entries_version_id ON timetable_entries(version_id);
+CREATE INDEX IF NOT EXISTS idx_entries_assignment_id ON timetable_entries(assignment_id);
