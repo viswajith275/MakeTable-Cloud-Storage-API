@@ -7,6 +7,9 @@ import (
 )
 
 type TeacherConstraints struct {
+	MaxPerDay      *int `json:"max_per_day"  binding:"omitempty,gte=1,lte=100"`
+	MaxPerWeek     *int `json:"max_per_week"  binding:"omitempty,gte=1,lte=100"`
+	MaxConsecutive *int `json:"max_consecutive"  binding:"omitempty,gte=1,lte=100"`
 }
 
 func (c TeacherConstraints) Value() (driver.Value, error) {
@@ -36,6 +39,9 @@ func (c *TeacherConstraints) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, c)
 }
 
-func (c *TeacherConstraints) Validate() error {
+func (c *TeacherConstraints) ValidateForPost() error {
+	if c == nil || c.MaxPerDay == nil || c.MaxPerWeek == nil || c.MaxConsecutive == nil {
+		return fmt.Errorf("constraints cannot be none!")
+	}
 	return nil
 }

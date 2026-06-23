@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+func CreateTeacherHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		UserID, err := uuid.Parse(ctx.GetString("user_id"))
 
@@ -45,7 +45,7 @@ func CreateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		var req dto.ClassCreationRequest
+		var req dto.TeacherCreationRequest
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
@@ -61,51 +61,28 @@ func CreateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		room, err := repository.GetRoomByID(pool, UserID, req.RoomID)
-
-		if err != nil {
-			if err.Error() == "No room found" {
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		if room.ProjectID != project.ID {
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"error": "No room found",
-			})
-			return
-		}
-
-		class, err := repository.CreateClass(pool, UserID, project.ID, &req)
+		teacher, err := repository.CreateTeacher(pool, UserID, project.ID, &req)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Class creation to database error: " + err.Error(),
+				"error": "Teacher creation to database error: " + err.Error(),
 			})
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, dto.ClassResponse{
-			ID:          class.ID,
-			ProjectID:   class.ProjectID,
-			Name:        class.Name,
-			RoomID:      room.ID,
-			Constraints: class.Constraints,
-			CreatedAt:   class.CreatedAt,
-			UpdatedAt:   class.UpdatedAt,
+		ctx.JSON(http.StatusCreated, dto.TeacherResponse{
+			ID:          teacher.ID,
+			ProjectID:   teacher.ProjectID,
+			Name:        teacher.Name,
+			Constraints: teacher.Constraints,
+			CreatedAt:   teacher.CreatedAt,
+			UpdatedAt:   teacher.UpdatedAt,
 		})
 
 	}
 }
 
-func GetClassesHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+func GetTeachersHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		UserID, err := uuid.Parse(ctx.GetString("user_id"))
 
@@ -140,7 +117,7 @@ func GetClassesHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		classes, err := repository.GetAllClassess(pool, UserID, project.ID)
+		teachers, err := repository.GetAllTeachers(pool, UserID, project.ID)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -149,17 +126,16 @@ func GetClassesHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		var res []dto.ClassResponse = []dto.ClassResponse{}
+		var res []dto.TeacherResponse = []dto.TeacherResponse{}
 
-		for _, class := range classes {
-			res = append(res, dto.ClassResponse{
-				ID:          class.ID,
-				ProjectID:   class.ProjectID,
-				Name:        class.Name,
-				RoomID:      class.RoomID,
-				Constraints: class.Constraints,
-				CreatedAt:   class.CreatedAt,
-				UpdatedAt:   class.UpdatedAt,
+		for _, teacher := range teachers {
+			res = append(res, dto.TeacherResponse{
+				ID:          teacher.ID,
+				ProjectID:   teacher.ProjectID,
+				Name:        teacher.Name,
+				Constraints: teacher.Constraints,
+				CreatedAt:   teacher.CreatedAt,
+				UpdatedAt:   teacher.UpdatedAt,
 			})
 		}
 
@@ -167,7 +143,7 @@ func GetClassesHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func UpdateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+func UpdateTeacherHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		UserID, err := uuid.Parse(ctx.GetString("user_id"))
 
@@ -178,7 +154,7 @@ func UpdateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		ClassID, err := uuid.Parse(ctx.Param("id"))
+		TeacherID, err := uuid.Parse(ctx.Param("id"))
 
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
@@ -187,10 +163,10 @@ func UpdateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		class, err := repository.GetClassByID(pool, UserID, ClassID)
+		teacher, err := repository.GetTeacherByID(pool, UserID, TeacherID)
 
 		if err != nil {
-			if err.Error() == "No class found" {
+			if err.Error() == "No teacher found" {
 				ctx.JSON(http.StatusNotFound, gin.H{
 					"error": err.Error(),
 				})
@@ -202,7 +178,7 @@ func UpdateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		var req dto.ClassUpdationRequest
+		var req dto.TeacherUpdationRequest
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
@@ -211,46 +187,7 @@ func UpdateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		if req.RoomID != nil {
-			class, err := repository.GetClassByID(pool, UserID, ClassID)
-
-			if err != nil {
-				if err.Error() == "No class found" {
-					ctx.JSON(http.StatusNotFound, gin.H{
-						"error": err.Error(),
-					})
-					return
-				}
-				ctx.JSON(http.StatusInternalServerError, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-
-			room, err := repository.GetRoomByID(pool, UserID, *req.RoomID)
-
-			if err != nil {
-				if err.Error() == "No room found" {
-					ctx.JSON(http.StatusNotFound, gin.H{
-						"error": err.Error(),
-					})
-					return
-				}
-				ctx.JSON(http.StatusInternalServerError, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-
-			if room.ProjectID != class.ProjectID {
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"error": "No room found",
-				})
-				return
-			}
-		}
-
-		class, err = repository.UpdateClass(pool, UserID, ClassID, &req)
+		teacher, err = repository.UpdateTeacher(pool, UserID, TeacherID, &req)
 
 		if err != nil {
 			if err.Error() == "Nothing to update!" {
@@ -260,25 +197,24 @@ func UpdateClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 				return
 			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Class updation to database error: " + err.Error(),
+				"error": "Teacher updation to database error: " + err.Error(),
 			})
 			return
 		}
 
-		ctx.JSON(http.StatusOK, dto.ClassResponse{
-			ID:          class.ID,
-			ProjectID:   class.ProjectID,
-			Name:        class.Name,
-			RoomID:      class.RoomID,
-			Constraints: class.Constraints,
-			CreatedAt:   class.CreatedAt,
-			UpdatedAt:   class.UpdatedAt,
+		ctx.JSON(http.StatusOK, dto.TeacherResponse{
+			ID:          teacher.ID,
+			ProjectID:   teacher.ProjectID,
+			Name:        teacher.Name,
+			Constraints: teacher.Constraints,
+			CreatedAt:   teacher.CreatedAt,
+			UpdatedAt:   teacher.UpdatedAt,
 		})
 
 	}
 }
 
-func DeleteClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+func DeleteTeacherHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		UserID, err := uuid.Parse(ctx.GetString("user_id"))
 
@@ -289,7 +225,7 @@ func DeleteClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		ClassID, err := uuid.Parse(ctx.Param("id"))
+		TeacherID, err := uuid.Parse(ctx.Param("id"))
 
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
@@ -298,17 +234,17 @@ func DeleteClassHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		err = repository.DeleteClass(pool, UserID, ClassID)
+		err = repository.DeleteTeacher(pool, UserID, TeacherID)
 
 		if err != nil {
-			if err.Error() == "Class with id "+ClassID.String()+" was not found" {
+			if err.Error() == "Teacher with id "+TeacherID.String()+" was not found" {
 				ctx.JSON(http.StatusBadRequest, gin.H{
 					"error": err.Error(),
 				})
 				return
 			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Class deletion to database error: " + err.Error(),
+				"error": "Teacher deletion to database error: " + err.Error(),
 			})
 			return
 		}

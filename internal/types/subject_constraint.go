@@ -7,6 +7,13 @@ import (
 )
 
 type SubjectConstraints struct {
+	MorningTendency *string `json:"morning_tendency" binding:"omitempty,oneof=Low Med High"`
+	MinPerDay       *int    `json:"min_per_day"  binding:"omitempty,gte=1,lte=100"`
+	MaxPerDay       *int    `json:"max_per_day"  binding:"omitempty,gte=1,lte=100"`
+	MinPerWeek      *int    `json:"min_per_week"  binding:"omitempty,gte=1,lte=100"`
+	MaxPerWeek      *int    `json:"max_per_week"  binding:"omitempty,gte=1,lte=100"`
+	MinConsecutive  *int    `json:"min_consecutive"  binding:"omitempty,gte=1,lte=100"`
+	MaxConsecutive  *int    `json:"max_consecutive"  binding:"omitempty,gte=1,lte=100"`
 }
 
 func (c SubjectConstraints) Value() (driver.Value, error) {
@@ -36,6 +43,9 @@ func (c *SubjectConstraints) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, c)
 }
 
-func (c *SubjectConstraints) Validate() error {
+func (c *SubjectConstraints) ValidateForPost() error {
+	if c == nil || c.MorningTendency == nil || c.MinPerDay == nil || c.MinPerWeek == nil || c.MinConsecutive == nil || c.MaxPerDay == nil || c.MaxPerWeek == nil || c.MaxConsecutive == nil {
+		return fmt.Errorf("constraints cannot be none!")
+	}
 	return nil
 }

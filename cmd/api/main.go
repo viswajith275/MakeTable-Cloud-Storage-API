@@ -85,23 +85,23 @@ func main() {
 	}
 
 	teacher_router := router.Group("/teachers")
-	room_router.Use(middleware.AuthMiddleWare(cfg))
+	teacher_router.Use(middleware.AuthMiddleWare(cfg))
 
 	{
-		teacher_router.GET("/:project_id")
-		teacher_router.POST("/:project_id")
-		teacher_router.PATCH("/:id")
-		teacher_router.DELETE("/:id")
+		teacher_router.GET("/:project_id", handlers.GetTeachersHandler(pool))
+		teacher_router.POST("/:project_id", handlers.CreateTeacherHandler(pool))
+		teacher_router.PATCH("/:id", handlers.UpdateTeacherHandler(pool))
+		teacher_router.DELETE("/:id", handlers.DeleteTeacherHandler(pool))
 	}
 
 	subject_router := router.Group("/subjects")
 	subject_router.Use(middleware.AuthMiddleWare(cfg))
 
 	{
-		subject_router.GET("/:project_id")
-		subject_router.POST("/:project_id")
-		subject_router.PATCH("/:id")
-		subject_router.DELETE("/:id")
+		subject_router.GET("/:project_id", handlers.GetSubjectHandler(pool))
+		subject_router.POST("/:project_id", handlers.CreateSubjectHandler(pool))
+		subject_router.PATCH("/:id", handlers.UpdateSubjectHandler(pool))
+		subject_router.DELETE("/:id", handlers.DeleteSubjectHandler(pool))
 	}
 
 	router.Run(":" + cfg.Port)

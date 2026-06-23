@@ -16,7 +16,7 @@ DROP FUNCTION IF EXISTS bump_subjects_version();
 DROP FUNCTION IF EXISTS bump_teachers_version();
 DROP FUNCTION IF EXISTS bump_classes_version();
 DROP FUNCTION IF EXISTS bump_rooms_version();
-DROP FUNCTION IF EXISTS update_modified_column();
+DROP FUNCTION IF EXISTS update_modified_column() CASCADE;
 
 -- Drop enums
 DROP TYPE IF EXISTS week_days;
