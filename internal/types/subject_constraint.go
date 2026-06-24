@@ -20,7 +20,7 @@ func (c SubjectConstraints) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
-func (c *SubjectConstraints) Scan(value interface{}) error {
+func (c *SubjectConstraints) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

@@ -16,7 +16,7 @@ func (c TeacherConstraints) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
-func (c *TeacherConstraints) Scan(value interface{}) error {
+func (c *TeacherConstraints) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

@@ -13,7 +13,7 @@ func (c ClassConstraints) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
-func (c *ClassConstraints) Scan(value interface{}) error {
+func (c *ClassConstraints) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

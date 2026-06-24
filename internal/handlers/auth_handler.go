@@ -29,7 +29,7 @@ func GenerateToken(UserID uuid.UUID, cfg *config.Config) (string, string, error)
 
 	accessClaims := jwt.MapClaims{
 		"user_id": UserID,
-		"exp":     time.Now().Add(time.Duration(cfg.AccessTokenTTL) * time.Minute).Unix(),
+		"exp":     jwt.NewNumericDate(time.Now().Add(time.Duration(cfg.AccessTokenTTL) * time.Minute)),
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
@@ -41,7 +41,7 @@ func GenerateToken(UserID uuid.UUID, cfg *config.Config) (string, string, error)
 
 	refreshClaims := jwt.MapClaims{
 		"user_id": UserID,
-		"exp":     time.Now().Add(time.Duration(cfg.RefreshTokenTTL) * time.Hour * 24).Unix(),
+		"exp":     jwt.NewNumericDate(time.Now().Add(time.Duration(cfg.RefreshTokenTTL) * time.Hour * 24)),
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
@@ -205,7 +205,7 @@ func RefreshHandler(pool *pgxpool.Pool, cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		newRefreshToken, newAccessToken, err := GenerateToken(refreshToken.UserID, cfg)
+		newAccessToken, newRefreshToken, err := GenerateToken(refreshToken.UserID, cfg)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{

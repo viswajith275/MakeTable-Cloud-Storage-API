@@ -15,7 +15,7 @@ type ProjectCreationRequest struct {
 type ProjectUpdationRequest struct {
 	Name  *string   `json:"name" binding:"omitempty,min=1"`
 	Slots *int      `json:"slots" binding:"omitempty,gt=0"`
-	Days  *[]string `json:"days" binding:"omitempty,min=1,unique"`
+	Days  *[]string `json:"days" binding:"omitempty,min=1,unique,dive,oneof=Mon Tue Wed Thu Fri Sat Sun"`
 }
 
 type ProjectResponse struct {

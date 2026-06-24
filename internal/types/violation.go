@@ -18,7 +18,7 @@ func (v ViolationList) Value() (driver.Value, error) {
 	return json.Marshal(v)
 }
 
-func (v *ViolationList) Scan(value interface{}) error {
+func (v *ViolationList) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

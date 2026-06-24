@@ -17,7 +17,7 @@ func (c *RoomConstraints) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }
 
-func (c *RoomConstraints) Scan(value interface{}) error {
+func (c *RoomConstraints) Scan(value any) error {
 
 	if value == nil {
 		return nil

@@ -104,6 +104,16 @@ func main() {
 		subject_router.DELETE("/:id", handlers.DeleteSubjectHandler(pool))
 	}
 
+	teacher_assignment_router := router.Group("/assignments")
+	teacher_assignment_router.Use(middleware.AuthMiddleWare(cfg))
+
+	{
+		teacher_assignment_router.GET("/:project_id", handlers.GetTeacherAssignmentHandler(pool))
+		teacher_assignment_router.POST("/", handlers.CreateTeacherAssignmentHandler(pool))
+		teacher_assignment_router.PATCH("/:id", handlers.UpdateTeacherAssignmentHandler(pool))
+		teacher_assignment_router.DELETE("/:id", handlers.DeleteTeacherAssignmentHandler(pool))
+	}
+
 	router.Run(":" + cfg.Port)
 
 }
